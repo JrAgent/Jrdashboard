@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const marked = require('marked');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 const DATA_DIR = path.join(__dirname, 'data');
@@ -66,34 +67,58 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Route for the main dashboard
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   try {
-    const insightsDir = path.join(__dirname, 'insights');
-    if (!fs.existsSync(insightsDir)) {
-      fs.mkdirSync(insightsDir, { recursive: true });
+    const keys = await kv.keys('insight:*');
+    const insights = [];
+    for (const key of keys) {
+      const data = await kv.get(key);
+      if (!data) continue;
+      try {
+        // New KV format: fullContent stored as string (no metadata JSON)
+        // Extract metadata from the content's headers (first lines starting with **Date:**, **Category:**)
+        const lines = data.split('\n');
+        let title = 'Untitled';
+        let dateStr = '';
+        let category = '';
+        let contentStart = 0;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.startsWith('# ')) {
+            title = line.replace(/^#\s+/, '').trim();
+          } else if (line.startsWith('**Date:**')) {
+            dateStr = line.replace(/^\*\*Date:\*\*\s*/, '').trim();
+          } else if (line.startsWith('**Category:**')) {
+            category = line.replace(/^\*\*Category:\*\*\s*/, '').trim();
+          } else if (line.trim() === '' && !dateStr) {
+            // Skip empty lines before content
+            continue;
+          } else {
+            contentStart = i;
+            break;
+          }
+        }
+        const content = lines.slice(contentStart).join('\n');
+        const html = marked.parse(content);
+        const slug = key.split(':')[1]; // e.g. "2026-02-24-daily-affirmation"
+        const date = new Date(dateStr || key.split(':')[1].split('-')[0:3].join('-'));
+        insights.push({
+          filename: `${slug}.md`,
+          title,
+          date: date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+          content: html,
+          excerpt: getExcerpt(content)
+        });
+      } catch (e) {
+        console.error('Error parsing insight from KV:', e);
+        continue;
+      }
     }
-
-    const files = fs.readdirSync(insightsDir)
-      .filter(file => file.endsWith('.md'))
-      .sort((a, b) => {
-        const dateA = extractDate(a);
-        const dateB = extractDate(b);
-        return dateB - dateA;
-      });
-
-    const insights = files.map(file => {
-      const filePath = path.join(insightsDir, file);
-      const content = fs.readFileSync(filePath, 'utf8');
-      const html = marked.parse(content);
-      const titleLine = content.split('\n').find(l => l.startsWith('# '));
-      const title = titleLine ? titleLine.replace(/^#\s+/, '').trim() : file.replace(/\.md$/, '');
-      return {
-        filename: file,
-        title,
-        date: extractReadableDate(file),
-        content: html,
-        excerpt: getExcerpt(content)
-      };
+    // Sort by date descending (extract date from filename or stored date)
+    insights.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB - dateA;
     });
 
     const sections = readSections();
@@ -148,17 +173,51 @@ app.get('/add-insight', (req, res) => {
 });
 
 // API endpoint to save new insight
-app.post('/api/add-insight', (req, res) => {
+app.post('/api/add-insight', async (req, res) => {
   try {
     const { title, date, category, content, notes } = req.body;
     const patterns = Array.isArray(req.body.patterns) ? req.body.patterns : (req.body.patterns ? [req.body.patterns] : []);
     
-    // Format the date for the filename
-    const formattedDate = new Date(date).toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    // Create filename
+    const formattedDate = new Date(date).toISOString().split('T')[0];
     const slug = (title || 'insight').toLowerCase()
       .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'insight';
+    const key = `insight:${formattedDate}-${slug}`;
+    
+    let fullContent = `# ${title}\n\n`;
+    fullContent += `**Date:** ${new Date(date).toLocaleDateString()}\n`;
+    fullContent += `**Category:** ${category}\n\n`;
+    if (patterns.length > 0) {
+      fullContent += `## Patterns Observed\n`;
+      patterns.forEach(pattern => {
+        const patternLabels = {
+          'narrative_hook': 'Clear narrative/hook',
+          'high_volume': 'High volume-to-market-cap ratio',
+          'community_active': 'Active community engagement',
+          'cross_chain': 'Cross-chain connections',
+          'established_team': 'Connection to established projects/teams',
+          'utility_beyond_meme': 'Utility beyond pure meme',
+          'compound_narrative': 'Combines multiple trending narratives'
+        };
+        fullContent += `- ✅ ${patternLabels[pattern] || pattern}\n`;
+      });
+      fullContent += `\n`;
+    }
+    fullContent += content;
+    if (notes) {
+      fullContent += `\n\n## Additional Notes\n${notes}`;
+    }
+    
+    await kv.set(key, fullContent);
+    
+    res.redirect('/');
+  } catch (error) {
+    console.error('Error saving insight:', error);
+    res.status(500).render('error', { message: 'Failed to save insight' });
+  }
+});\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '') || 'insight';
@@ -251,24 +310,45 @@ function getExcerpt(content) {
 }
 
 // Route for viewing individual insight
-app.get('/insight/:filename', (req, res) => {
-  const filename = decodeURIComponent(req.params.filename);
-  const filePath = path.join(__dirname, 'insights', filename);
-  
+app.get('/insight/:filename', async (req, res) => {
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
+    const filename = decodeURIComponent(req.params.filename);
+    const slug = filename.replace(/\.md$/, '');
+    const key = `insight:${slug}`;
+    const data = await kv.get(key);
+    if (!data) {
+      return res.status(404).render('error', { message: 'Insight not found' });
+    }
+    // data is the full markdown content string
+    const lines = data.split('\n');
+    let title = 'Untitled';
+    let dateStr = '';
+    let contentStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.startsWith('# ')) {
+        title = line.replace(/^#\s+/, '').trim();
+      } else if (line.startsWith('**Date:**')) {
+        dateStr = line.replace(/^\*\*Date:\*\*\s*/, '').trim();
+      } else if (line.trim() === '' && !dateStr) {
+        continue;
+      } else {
+        contentStart = i;
+        break;
+      }
+    }
+    const content = lines.slice(contentStart).join('\n');
     const html = marked.parse(content);
-    const titleLine = content.split('\n').find(l => l.startsWith('# '));
-    const title = titleLine ? titleLine.replace(/^#\s+/, '').trim() : filename.replace(/\.md$/, '');
-    
-    res.render('insight', { 
-      filename: filename,
+    const date = new Date(dateStr || slug.split('-')[0:3].join('-'));
+    res.render('insight', {
+      filename,
       title,
-      date: extractReadableDate(filename),
-      content: html 
+      date: date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      content: html
     });
   } catch (err) {
-    res.status(404).render('error', { message: 'Insight not found' });
+    console.error('Insight view error:', err);
+    res.status(500).render('error', { message: 'Failed to load insight' });
   }
 });
 
@@ -937,4 +1017,19 @@ if (require.main === module) {
     });
   }
   startServer(PORT);
+}
+
+// Add a new affirmation for today
+(async () => {
+  try {
+    const key = `affirmation:2026-02-25`;
+    const existing = await kv.get(key);
+    if (!existing) {
+      const affirmation = `I am aligned with abundance. Every decision I make creates value, and every insight I gain moves me closer to my goals.`;
+      await kv.set(key, affirmation);
+    }
+  } catch (err) {
+    console.log('Affirmation setup skipped:', err.message);
+  }
+})();
 }

@@ -63,3 +63,4 @@ Thumbs.db
 !.git/objects/
 !.git/refs/
 !.gitignore
+.vercel
