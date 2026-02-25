@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Command Center</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar', { activeNav: 'dashboard' }) %>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <span class="header-greeting">Hey There! Waccha Cookin'?</span>
+                <div class="header-actions">
+                    <a href="/assistant" class="btn-generate">Generate +</a>
+                    <a href="/portfolio" class="btn-secondary">Portfolio</a>
+                    <div class="header-icons">
+                        <span class="icon-placeholder" title="Search">&#128269;</span>
+                        <span class="icon-placeholder" title="Notifications">&#128276;</span>
+                        <span class="icon-placeholder avatar" title="Avatar">&#128100;</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div id="dashboardWidgets" class="dashboard-widgets">
+                    <!-- Widget: Affirmation -->
+                    <div class="dashboard-widget" data-widget-id="affirmation" data-size="medium">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="affirmation-banner card">
+                            <div class="affirmation-content">
+                                <span class="affirmation-label">Today's Affirmation</span>
+                                <p id="affirmationText" class="affirmation-text">Set your intention for the day...</p>
+                                <div class="affirmation-actions">
+                                    <input type="text" id="affirmationInput" placeholder="Type your affirmation and press Enter or click Save">
+                                    <button type="button" id="affirmationSave" class="btn-primary">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Overview -->
+                    <div class="dashboard-widget" data-widget-id="overview" data-size="large">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="card card-dark">
+                            <div class="card-header">
+                                <h3>Overview</h3>
+                            </div>
+                            <div class="overview-card">
+                                <div class="overview-stat">
+                                    <div class="stat-value"><%= (typeof stats !== 'undefined' && stats ? stats.insightsCount : 0) %></div>
+                                    <div class="stat-label">Market Briefs</div>
+                                </div>
+                                <div class="overview-stat">
+                                    <div class="stat-value" id="statTodosDone"><%= (typeof stats !== 'undefined' && stats ? stats.todosDone : 0) %> / <%= (typeof stats !== 'undefined' && stats ? stats.todosTotal : 0) %></div>
+                                    <div class="stat-label">Tasks Done</div>
+                                </div>
+                                <div class="overview-stat">
+                                    <div class="stat-value"><%= (typeof stats !== 'undefined' && stats ? stats.sectionsOngoing : 0) %></div>
+                                    <div class="stat-label">Ongoing Projects</div>
+                                </div>
+                                <div class="overview-stat">
+                                    <div class="stat-value"><%= (typeof stats !== 'undefined' && stats ? stats.sectionsAccomplished : 0) %></div>
+                                    <div class="stat-label">Accomplished</div>
+                                </div>
+                            </div>
+                            <div class="overview-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="overviewProgressBar" style="width: <%= (typeof stats !== 'undefined' && stats && stats.todosTotal > 0 ? (stats.todosDone / stats.todosTotal * 100) : 0) %>%"></div>
+                                </div>
+                                <span class="progress-label" id="overviewProgressLabel"><%= (typeof stats !== 'undefined' && stats ? stats.todosDone : 0) %> / <%= (typeof stats !== 'undefined' && stats ? stats.todosTotal : 0) %> completed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Crypto Prices -->
+                    <div class="dashboard-widget" data-widget-id="crypto" data-size="small">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="card card-compact">
+                            <div class="card-header">
+                                <h3>Crypto Prices</h3>
+                                <span id="cryptoRefresh" class="card-action">Refresh</span>
+                            </div>
+                            <div id="cryptoPrices" class="crypto-prices">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Calendar -->
+                    <div class="dashboard-widget" data-widget-id="calendar" data-size="small">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="card calendar-card">
+                            <div class="card-header">
+                                <h3>Calendar</h3>
+                                <span id="calMonth" class="card-meta"></span>
+                            </div>
+                            <div class="cal-grid" id="calGrid">
+                                <div class="cal-day weekday">S</div>
+                                <div class="cal-day weekday">M</div>
+                                <div class="cal-day weekday">T</div>
+                                <div class="cal-day weekday">W</div>
+                                <div class="cal-day weekday">T</div>
+                                <div class="cal-day weekday">F</div>
+                                <div class="cal-day weekday">S</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Portfolio -->
+                    <div class="dashboard-widget" data-widget-id="portfolio" data-size="small">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="card portfolio-snapshot-card">
+                            <div class="card-header">
+                                <h3>Portfolio</h3>
+                                <a href="/portfolio" class="portfolio-view-all">View all →</a>
+                            </div>
+                            <div id="portfolioSnapshot" class="portfolio-snapshot">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Productivity -->
+                    <div class="dashboard-widget" data-widget-id="productivity" data-size="large">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <h2 class="section-heading">Focus & Wellness</h2>
+                        <div class="dashboard-grid productivity-grid">
+                            <div class="col-3">
+                                <div class="card productivity-card">
+                                    <h3>Pomodoro</h3>
+                                    <div class="pomodoro-display" id="pomodoroDisplay">25:00</div>
+                                    <div class="pomodoro-mode" id="pomodoroMode">Work</div>
+                                    <div class="pomodoro-actions">
+                                        <button type="button" id="pomodoroStart">Start</button>
+                                        <button type="button" id="pomodoroPause">Pause</button>
+                                        <button type="button" id="pomodoroReset">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card productivity-card">
+                                    <h3>Today's One Thing</h3>
+                                    <p class="productivity-hint">Most important task today</p>
+                                    <input type="text" id="oneThingInput" placeholder="What's the one thing?">
+                                    <button type="button" id="oneThingSave">Save</button>
+                                    <p id="oneThingDisplay" class="productivity-value"></p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card productivity-card">
+                                    <h3>Gratitude</h3>
+                                    <p class="productivity-hint">3 things you're grateful for</p>
+                                    <input type="text" id="gratitude1" placeholder="1.">
+                                    <input type="text" id="gratitude2" placeholder="2.">
+                                    <input type="text" id="gratitude3" placeholder="3.">
+                                    <button type="button" id="gratitudeSave">Save</button>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card productivity-card">
+                                    <h3>Daily Focus</h3>
+                                    <p class="productivity-hint">Your intention for today</p>
+                                    <input type="text" id="focusInput" placeholder="e.g. Deep work on Base chain">
+                                    <button type="button" id="focusSave">Save</button>
+                                    <p id="focusDisplay" class="productivity-value"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Daily Brief (expandable) -->
+                    <div class="dashboard-widget" data-widget-id="daily-brief" data-size="medium">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="daily-brief-card card">
+                            <div class="daily-brief-header" id="dailyBriefHeader">
+                                <h3 class="daily-brief-title">Daily Brief (Jr)</h3>
+                                <button type="button" class="daily-brief-toggle" id="dailyBriefToggle" aria-label="Expand/collapse">
+                                    <span class="chevron" id="dailyBriefChevron">&#9660;</span>
+                                </button>
+                                <button type="button" class="ai-add-btn daily-brief-add" id="addMorningBriefBtn">+ Add Brief</button>
+                            </div>
+                            <div class="daily-brief-body" id="dailyBriefBody">
+                                <div class="daily-brief-content">
+                                    <div id="morningBriefsList"></div>
+                                    <div class="daily-brief-divider"></div>
+                                    <div class="jr-todos-inline">
+                                        <h4>Jr's To-Do List</h4>
+                                        <p class="hint">Tasks for Jr to track</p>
+                                        <ul class="todo-list" id="jrTodoList"></ul>
+                                        <div class="todo-add">
+                                            <input type="text" id="jrTodoInput" placeholder="Add a task for Jr...">
+                                            <input type="number" id="jrTodoPriority" title="Priority (1=most)" min="1" max="10" value="5">
+                                            <button type="button" id="jrTodoAddBtn">Add</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Todos, Notes, AI Insights -->
+                    <div class="dashboard-widget" data-widget-id="todos-notes-insights" data-size="large">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <div class="dashboard-grid">
+                            <div class="col-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>To-Do List</h3>
+                                    </div>
+                                    <p class="card-hint">Track tasks across your endeavors</p>
+                                    <ul class="todo-list" id="todoList"></ul>
+                                    <div class="todo-add">
+                                        <input type="text" id="todoInput" placeholder="Add a task...">
+                                        <input type="number" id="todoPriority" title="Priority (1=most)" min="1" max="10" value="5">
+                                        <button type="button" id="todoAddBtn">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>Quick Notes</h3>
+                                    </div>
+                                    <div class="notes-list" id="notesList"></div>
+                                    <button type="button" class="notes-add-btn" id="notesAddBtn">+ Add Note</button>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>AI Agent Insights</h3>
+                                    </div>
+                                    <div id="aiInsightsList"></div>
+                                    <button type="button" class="ai-add-btn" id="aiAddBtn">+ Add AI Insight</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Workflow -->
+                    <div class="dashboard-widget" data-widget-id="workflow" data-size="large">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <h2 class="section-heading">My Workflow & Projects</h2>
+                        <div class="cards-grid" id="sectionsGrid">
+                            <div class="card add-section-card" id="addSectionCard" title="Add new project">
+                                <span class="add-icon">+</span>
+                                <span class="add-text">+ Begin an Arc</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Market Briefs -->
+                    <div class="dashboard-widget" data-widget-id="market-briefs" data-size="large">
+                        <span class="widget-drag-handle" aria-label="Drag to reorder" title="Drag to reorder">&#8942;&#8942;</span>
+                        <button type="button" class="widget-resize-btn" aria-label="Resize card" title="Click to cycle size">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <h2 class="section-heading">Market Briefs</h2>
+                        <div class="cards-grid" id="insightsGrid">
+                            <% if (insights.length > 0) { %>
+                                <% insights.forEach((insight, i) => { %>
+                                    <div class="card insight-card animate-in" style="animation-delay: <%= 0.05 + i * 0.05 %>s">
+                                        <span class="card-date"><%= insight.date %></span>
+                                        <h3 class="card-title"><%= insight.title %></h3>
+                                        <p class="card-excerpt"><%= insight.excerpt %></p>
+                                        <a href="/insight/<%= encodeURIComponent(insight.filename) %>" class="card-link">Read Full Brief</a>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="no-content">
+                                    <p>No market briefs yet.</p>
+                                    <p><a href="/add-insight">Create your first brief</a> or tell your <a href="/assistant">Assistant</a> to retain info.</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="footer">
+                    <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <%- include('partials/modals') %>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!-- Modal: Add/Edit Section -->
+<div class="modal-overlay" id="sectionModal">
+    <div class="modal">
+        <h2 id="modalTitle">Begin an Arc</h2>
+        <form id="sectionForm">
+            <input type="hidden" id="sectionId" name="id">
+            <div class="form-group">
+                <label for="sectionTitle">Title</label>
+                <input type="text" id="sectionTitle" name="title" required placeholder="Project or workflow name">
+            </div>
+            <div class="form-group">
+                <label for="sectionDescription">Description</label>
+                <textarea id="sectionDescription" name="description" placeholder="Optional description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="sectionType">Type</label>
+                <select id="sectionType" name="type">
+                    <option value="workflow">Workflow</option>
+                    <option value="idea">Idea</option>
+                    <option value="project">Project</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sectionStatus">Status</label>
+                <select id="sectionStatus" name="status">
+                    <option value="planned">Planned</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="accomplished">Accomplished</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sectionColor">Color</label>
+                <select id="sectionColor" name="color">
+                    <option value="default">Default</option>
+                    <option value="magenta">Magenta</option>
+                    <option value="purple">Purple</option>
+                    <option value="cyan">Cyan</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sectionNotes">Notes</label>
+                <textarea id="sectionNotes" name="notes" placeholder="Project notes, reminders, next steps..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" class="btn-cancel" id="modalCancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Note -->
+<div class="modal-overlay" id="noteModal">
+    <div class="modal">
+        <h2 id="noteModalTitle">Add Note</h2>
+        <form id="noteForm">
+            <input type="hidden" id="noteId" name="id">
+            <div class="form-group">
+                <label for="noteTitle">Title</label>
+                <input type="text" id="noteTitle" name="title" required placeholder="Note title">
+            </div>
+            <div class="form-group">
+                <label for="noteContent">Content</label>
+                <textarea id="noteContent" name="content" placeholder="Your note..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" class="btn-cancel" id="noteModalCancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add AI Insight -->
+<div class="modal-overlay" id="aiModal">
+    <div class="modal">
+        <h2>Add AI Insight</h2>
+        <form id="aiForm">
+            <div class="form-group">
+                <label for="aiTitle">Title</label>
+                <input type="text" id="aiTitle" name="title" required placeholder="Insight title">
+            </div>
+            <div class="form-group">
+                <label for="aiContent">Content</label>
+                <textarea id="aiContent" name="content" placeholder="Note from your AI agent..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" class="btn-cancel" id="aiModalCancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Morning Brief -->
+<div class="modal-overlay" id="morningBriefModal">
+    <div class="modal">
+        <h2>Add Morning Brief (Jr)</h2>
+        <form id="morningBriefForm">
+            <div class="form-group">
+                <label for="briefTitle">Title</label>
+                <input type="text" id="briefTitle" name="title" placeholder="Brief title">
+            </div>
+            <div class="form-group">
+                <label for="briefContent">Content</label>
+                <textarea id="briefContent" name="content" placeholder="Today's brief from Jr..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" class="btn-cancel" id="morningBriefCancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
