@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : filename %> | Command Center</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .insight-content { background: rgba(255,255,255,0.03); padding: 24px; border-radius: var(--radius-md); margin: 20px 0; }
+        .insight-content h1, .insight-content h2, .insight-content h3 { color: var(--accent-cyan); margin: 20px 0 15px 0; }
+        .insight-content h2 { color: var(--accent-magenta); border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+        .insight-content p { margin: 15px 0; }
+        .insight-content ul, .insight-content ol { margin: 15px 0 15px 30px; }
+        .insight-content li { margin: 8px 0; }
+        .insight-content code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .insight-content pre { background: rgba(0,0,0,0.4); padding: 15px; border-radius: var(--radius-sm); overflow-x: auto; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar', { activeNav: 'dashboard' }) %>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <span class="header-greeting"><%= typeof title !== 'undefined' ? title : filename %></span>
+                <div class="header-actions">
+                    <a href="/" class="btn-primary">← Back to Dashboard</a>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="card" style="max-width: 900px; margin: 0 auto;">
+                    <span class="card-date" style="display: block; margin-bottom: 16px;"><%= date %></span>
+                    <div class="insight-content">
+                        <%- content %>
+                    </div>
+                    <a href="/" style="display: inline-block; margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, var(--accent-magenta), var(--accent-purple)); color: white; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;">← Back to Dashboard</a>
+                    <a href="/assistant" style="display: inline-block; margin-top: 24px; margin-left: 12px; padding: 12px 24px; background: rgba(255,255,255,0.08); color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-sm); font-weight: 600; border: 1px solid var(--card-border);">Assistant</a>
+                </div>
+
+                <footer class="footer">
+                    <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function() {
+            var menuToggle = document.getElementById('menuToggle');
+            var sidebar = document.getElementById('sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

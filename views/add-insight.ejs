@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Market Brief | Command Center</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar', { activeNav: 'add-insight' }) %>
+
+        <main class="main-content">
+        <header class="header-bar">
+            <span class="header-greeting">Add your research and analysis</span>
+            <div class="header-actions">
+                <a href="/" class="btn-primary">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <h1 style="font-size: 1.75rem; margin-bottom: 24px; color: var(--accent-magenta);">Create Market Brief</h1>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Document your research and analysis as a market brief</p>
+
+                <form action="/api/add-insight" method="POST">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="title" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Title *</label>
+                        <input type="text" id="title" name="title" required placeholder="Enter a descriptive title" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="date" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Date *</label>
+                        <input type="date" id="date" name="date" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="category" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Category</label>
+                        <select id="category" name="category" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem;">
+                            <option value="memecoin">Memecoin Analysis</option>
+                            <option value="defi">DeFi Opportunities</option>
+                            <option value="rwa">Real World Assets (RWA)</option>
+                            <option value="base">Base Chain Ecosystem</option>
+                            <option value="solana">Solana Ecosystem</option>
+                            <option value="ethereum">Ethereum Ecosystem</option>
+                            <option value="ai">AI Agent Tokens</option>
+                            <option value="100x-opportunity">100x Opportunity</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="content" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Main Content *</label>
+                        <textarea id="content" name="content" required placeholder="Enter your analysis, research findings, and insights..." style="width: 100%; min-height: 200px; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem; resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin: 24px 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm);">
+                        <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--accent-cyan);">100x Opportunity Checklist</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">Select the patterns you've observed:</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="narrative_hook"> Clear narrative/hook that resonates with community</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="high_volume"> High volume-to-market-cap ratio indicating interest</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="community_active"> Active community engagement on social platforms</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="cross_chain"> Cross-chain connections or integrations</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="established_team"> Connection to established projects/teams</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="utility_beyond_meme"> Utility beyond pure meme appeal</label>
+                            <label style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-weight: normal; cursor: pointer;"><input type="checkbox" name="patterns" value="compound_narrative"> Combines multiple trending narratives</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label for="notes" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Additional Notes</label>
+                        <textarea id="notes" name="notes" placeholder="Any additional thoughts, risks, or follow-up items..." style="width: 100%; min-height: 80px; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button type="submit" class="btn-save" style="padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; border: none; background: linear-gradient(135deg, var(--accent-magenta), var(--accent-purple)); color: white;">Save Brief</button>
+                        <a href="/assistant" style="padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--card-border);">Assistant</a>
+                        <a href="/" style="padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; text-decoration: none; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--card-border);">← Dashboard</a>
+                    </div>
+                </form>
+            </div>
+
+            <footer class="footer">
+                <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+            </footer>
+        </div>
+        </main>
+    </div>
+
+    <script>
+        (function() {
+            var menuToggle = document.getElementById('menuToggle');
+            var sidebar = document.getElementById('sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

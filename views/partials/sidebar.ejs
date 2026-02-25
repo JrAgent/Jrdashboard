@@ -1,0 +1,20 @@
+<button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+</button>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Command Center</div>
+    <nav class="sidebar-nav">
+        <a href="/" class="<%= typeof activeNav !== 'undefined' && activeNav === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+        <a href="/portfolio" class="<%= typeof activeNav !== 'undefined' && activeNav === 'portfolio' ? 'active' : '' %>">Portfolio</a>
+        <a href="/assistant" class="<%= typeof activeNav !== 'undefined' && activeNav === 'assistant' ? 'active' : '' %>">Assistant</a>
+        <a href="/">Market Briefs</a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/assistant">Assistant</a>
+    </div>
+</aside>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant | Command Center</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar', { activeNav: 'assistant' }) %>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <span class="header-greeting">Tell your assistant what to remember</span>
+                <div class="header-actions">
+                    <a href="/add-insight" class="btn-primary">Create Market Brief</a>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <h1 style="font-size: 1.75rem; margin-bottom: 16px; color: var(--accent-magenta);">Assistant</h1>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Share any info you want your assistant to retain — context, preferences, reminders, or research notes.</p>
+
+                    <form id="assistantForm">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="assistantInput" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">What should I remember?</label>
+                            <textarea id="assistantInput" name="content" required placeholder="e.g. I'm focusing on Base chain AI agents this quarter. Track any Clawd ecosystem updates. Meeting with Jay on Fridays." style="width: 100%; min-height: 120px; padding: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 1rem; resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn-save" style="padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; border: none; background: linear-gradient(135deg, var(--accent-magenta), var(--accent-purple)); color: white;">Save to Memory</button>
+                    </form>
+                </div>
+
+                <h2 class="section-heading" style="margin-top: 40px;">Retained Info</h2>
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div id="memoriesList"></div>
+                </div>
+
+                <footer class="footer">
+                    <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function() {
+            const form = document.getElementById('assistantForm');
+            const memoriesList = document.getElementById('memoriesList');
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            async function loadMemories() {
+                try {
+                    const res = await fetch('/api/assistant-memories');
+                    const memories = await res.json();
+                    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+                    memoriesList.innerHTML = memories.length ? memories.map(m => `
+                        <div class="memory-item" style="padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: start;">
+                            <p style="flex: 1; margin: 0; color: var(--text-primary); white-space: pre-wrap;">${esc(m.content)}</p>
+                            <button type="button" class="todo-delete" data-id="${m.id}" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;">×</button>
+                        </div>
+                    `).join('') : '<p style="color: var(--text-muted); padding: 20px;">No memories yet. Tell your assistant something to retain.</p>';
+                    memoriesList.querySelectorAll('.todo-delete').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            try {
+                                await fetch('/api/assistant-memories/' + btn.dataset.id, { method: 'DELETE' });
+                                loadMemories();
+                            } catch (e) {}
+                        });
+                    });
+                } catch (err) {
+                    memoriesList.innerHTML = '<p style="color: var(--text-muted); padding: 20px;">Unable to load memories.</p>';
+                }
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const content = document.getElementById('assistantInput').value.trim();
+                if (!content) return;
+                try {
+                    await fetch('/api/assistant-memories', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    document.getElementById('assistantInput').value = '';
+                    loadMemories();
+                } catch (err) {
+                    alert('Failed to save.');
+                }
+            });
+
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+
+            loadMemories();
+        })();
+    </script>
+</body>
+</html>

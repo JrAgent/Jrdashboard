@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Command Center</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar', { activeNav: 'portfolio' }) %>
+
+        <main class="main-content">
+            <header class="header-bar">
+                <span class="header-greeting">Crypto Watchlist</span>
+                <div class="header-actions">
+                    <div class="portfolio-add">
+                        <input type="text" id="portfolioSymbol" placeholder="Add symbol (e.g. BTC)" maxlength="10">
+                        <button type="button" id="portfolioAddBtn" class="btn-primary">+ Add</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="card portfolio-card">
+                    <div class="card-header">
+                        <h3>Watching</h3>
+                        <span class="portfolio-hint">BTC, ETH, SOL, DOGE, PEPE, etc.</span>
+                    </div>
+                    <div id="portfolioList" class="portfolio-list"></div>
+                </div>
+
+                <footer class="footer">
+                    <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function() {
+            const symbolInput = document.getElementById('portfolioSymbol');
+            const addBtn = document.getElementById('portfolioAddBtn');
+            const list = document.getElementById('portfolioList');
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            async function loadPortfolio() {
+                try {
+                    const [itemsRes, pricesRes] = await Promise.all([
+                        fetch('/api/portfolio'),
+                        fetch('/api/portfolio-prices')
+                    ]);
+                    const items = await itemsRes.json();
+                    const prices = await pricesRes.json();
+                    if (!Array.isArray(items)) return;
+                    list.innerHTML = items.length ? items.map(i => {
+                        const p = prices[i.coingeckoId];
+                        const price = p?.usd ? '$' + (p.usd >= 1 ? p.usd.toLocaleString(undefined, { maxFractionDigits: 2 }) : p.usd.toFixed(6)) : '—';
+                        const change = p?.usd_24h_change != null ? (p.usd_24h_change >= 0 ? '+' : '') + p.usd_24h_change.toFixed(2) + '%' : '';
+                        const changeClass = p?.usd_24h_change >= 0 ? 'positive' : 'negative';
+                        return `
+                            <div class="portfolio-row" data-id="${i.id}">
+                                <div class="portfolio-info">
+                                    <span class="portfolio-symbol">${i.symbol}</span>
+                                    <span class="portfolio-name">${i.name || i.symbol}</span>
+                                </div>
+                                <div class="portfolio-price">${price}</div>
+                                ${change ? `<span class="portfolio-change ${changeClass}">${change}</span>` : ''}
+                                <button type="button" class="portfolio-remove" data-id="${i.id}" aria-label="Remove">×</button>
+                            </div>
+                        `;
+                    }).join('') : '<p class="portfolio-empty">No cryptos in watchlist. Add symbols above.</p>';
+                    list.querySelectorAll('.portfolio-remove').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            try {
+                                await fetch('/api/portfolio/' + btn.dataset.id, { method: 'DELETE' });
+                                loadPortfolio();
+                            } catch (e) {}
+                        });
+                    });
+                } catch (err) {
+                    list.innerHTML = '<p class="portfolio-empty">Unable to load portfolio.</p>';
+                }
+            }
+
+            addBtn.addEventListener('click', addCrypto);
+            symbolInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCrypto(); } });
+
+            async function addCrypto() {
+                const symbol = symbolInput.value.trim();
+                if (!symbol) return;
+                try {
+                    const res = await fetch('/api/portfolio', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        alert(data.error || 'Failed to add');
+                        return;
+                    }
+                    symbolInput.value = '';
+                    loadPortfolio();
+                } catch (err) {
+                    alert('Failed to add');
+                }
+            }
+
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+
+            loadPortfolio();
+            setInterval(loadPortfolio, 60000);
+        })();
+    </script>
+</body>
+</html>

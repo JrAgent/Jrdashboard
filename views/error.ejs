@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error | Crypto Market Insights Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        body { background: #0d0d0f; color: #fff; font-family: system-ui, sans-serif; }
+        .error-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .error-card { max-width: 500px; width: 100%; background: rgba(30,30,40,0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 40px; text-align: center; }
+        .error-card h1 { font-size: 2rem; color: #e94560; margin-bottom: 20px; }
+        .error-message { color: #ff6b6b; font-size: 1.1rem; margin: 20px 0; }
+        .error-card .back-btn { display: inline-block; margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, #e94560, #7c3aed); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; }
+        .error-card .back-btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-card">
+            <h1>Error</h1>
+            <div class="error-message">
+                <p><%= typeof message !== 'undefined' ? message : 'An unexpected error occurred' %></p>
+            </div>
+            <p style="color: var(--text-secondary);">We encountered an issue while processing your request.</p>
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+            <footer class="footer" style="margin-top: 30px; border: none; padding-top: 20px;">
+                <p>Powered by Jr (Junior) | Created for Jay | <%= new Date().getFullYear() %></p>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
